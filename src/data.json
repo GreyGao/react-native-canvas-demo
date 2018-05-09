@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "width": 123
+  },
+  "data": [
+    [
+      {
+        "data": [
+          {
+            "x": 1,
+            "y": 1,
+            "p": 1,
+            "t": 1234
+          }
+        ],
+        "style": {
+          "color": 0,
+          "width": 1
+        },
+        "timestamp": 123
+      }
+    ]
+  ],
+  "action": [
+    {
+      "type": "image",
+      "content": {
+        "url": "12314",
+        "angle": 12,
+        "x": 1,
+        "y": 1,
+        "width": 12,
+        "height": 12
+      },
+      "timestamp": 123
+    }
+  ]
+}

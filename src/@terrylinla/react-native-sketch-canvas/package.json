@@ -1,0 +1,56 @@
+{
+  "_from": "@terrylinla/react-native-sketch-canvas@^0.3.1",
+  "_id": "@terrylinla/react-native-sketch-canvas@0.3.1",
+  "_inBundle": false,
+  "_integrity": "sha1-BuBsjH6vjdptQRS//9/Kkrymz3c=",
+  "_location": "/@terrylinla/react-native-sketch-canvas",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "@terrylinla/react-native-sketch-canvas@^0.3.1",
+    "name": "@terrylinla/react-native-sketch-canvas",
+    "escapedName": "@terrylinla%2freact-native-sketch-canvas",
+    "scope": "@terrylinla",
+    "rawSpec": "^0.3.1",
+    "saveSpec": null,
+    "fetchSpec": "^0.3.1"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@terrylinla/react-native-sketch-canvas/-/react-native-sketch-canvas-0.3.1.tgz",
+  "_shasum": "06e06c8c7eaf8dda6d4114bfffdfca92bca6cf77",
+  "_spec": "@terrylinla/react-native-sketch-canvas@^0.3.1",
+  "_where": "/Users/Grey/Desktop/Quartet/react-native-canvas-demo",
+  "author": {
+    "name": "Terry Lin"
+  },
+  "bugs": {
+    "url": "https://github.com/terrylinla/react-native-sketch-canvas/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "react-native-sketch-canvas allows you to draw / sketch on both iOS and Android devices and sync the drawing data between users. Of course you can save as image.",
+  "homepage": "https://github.com/terrylinla/react-native-sketch-canvas#readme",
+  "keywords": [
+    "react-native",
+    "react-native-sketch",
+    "react-native-svg",
+    "react",
+    "native",
+    "sketch",
+    "svg",
+    "draw"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "@terrylinla/react-native-sketch-canvas",
+  "nativePackage": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/terrylinla/react-native-sketch-canvas.git"
+  },
+  "version": "0.3.1"
+}
