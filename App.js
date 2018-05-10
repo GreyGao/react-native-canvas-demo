@@ -46,10 +46,11 @@ export default class App extends Component<Props> {
         data: [],
         action: [],
       },
-      page: 1,
+      page: 0,
       trigger: false,
       openTime: '',
       images: [1,2],
+      pathsData: [],
     }
   }
 
@@ -115,7 +116,13 @@ export default class App extends Component<Props> {
 
   // 清空画布
   clear = (canvas) => {
-    canvas.clear()
+    // 内容清空
+    canvas.clear();
+    // 路径数据清空
+    const {pathsData, page} = this.state;
+    // console.log(pathsData[page])
+    pathsData[page] = [];
+
   };
 
   // 橡皮擦
@@ -127,7 +134,13 @@ export default class App extends Component<Props> {
 
   // 保存数据
   save = (res) => {
-    const {data, page, openTime} = this.state;
+    const {data, page, openTime, pathsData} = this.state;
+
+    //保存原始path数据, 用于复原路径
+    if (!pathsData[page]) {
+      pathsData[page] = []
+    }
+    pathsData[page].push(res);
 
     // meta数据
     let meta = {
@@ -169,7 +182,7 @@ export default class App extends Component<Props> {
 
     // 多页的数据
     let mutiPagesData = data.data;
-    mutiPagesData[page - 1] = this.pageData;
+    mutiPagesData[page] = this.pageData;
 
     // action
     let mutiAction = data.action;
@@ -197,10 +210,11 @@ export default class App extends Component<Props> {
       data: mutiPagesData,
       action: mutiAction,
     };
-    console.log(saveData);
+    console.log(this.state);
 
     this.setState({
-      data: saveData
+      data: saveData,
+      pathsData: pathsData,
     })
   };
 
@@ -225,18 +239,60 @@ export default class App extends Component<Props> {
     this.setState({
       images: images,
     })
-  }
+  };
+
+  // 下一页
+  nextPage = (canvas) => {
+    // 1. 记录当前页面所有的数据
+    const page = this.state.page + 1;
+    // 2. 判断当前页是否已有数据,有=>复原画布，无=>清空当前画布
+    const pagesData = this.state.pathsData[page];
+    if (pagesData) {
+      canvas.clear();
+      for (let i = 0; i < pagesData.length; i++) {
+        canvas.addPath(pagesData[i])
+      }
+    } else {
+      canvas.clear();
+    }
+    // 3. this.state.page += 1
+    this.setState({
+      page: page
+    })
+  };
+
+  // 上一页
+  lastPage = (canvas) => {
+    if (this.state.page === 0) return;
+    // 1. 获取向前翻页后的页码page
+    const page = this.state.page - 1;
+    // 2. 读取该page的data
+    const pathData = this.state.pathsData[page];
+    // 3. 清空当前画布
+    canvas.clear();
+    // 4. 复原画布
+    for(let i=0; i<pathData.length; i++){
+      canvas.addPath(pathData[i])
+    }
+    // 5. this.state.page -= 1
+    this.setState({
+      page: page
+    })
+  };
+
 
   renderCanvas = () => {
     return (
       <Canvas ref={this.handleImageRect} />
     )
-  }
+  };
 
   render() {
     return (
       <View style={styles.container}>
         <View style={styles.touchbar}>
+          <Button title="前" onPress={() => {this.lastPage(this.canvas1)}}  style={styles.welcome} />
+          <Button title="后" onPress={() => {this.nextPage(this.canvas1)}}  style={styles.welcome} />
           <Button title="粗" onPress={() => {this.changeWidth(4)}}  style={styles.welcome} />
           <Button title="细" onPress={() => {this.changeWidth(1)}} style={styles.welcome} />
           <Button title="擦" onPress={() => {this.eraser()}}  style={styles.welcome} />
@@ -255,7 +311,7 @@ export default class App extends Component<Props> {
             strokeColor={this.state.penColor}
             strokeWidth={this.state.penWidth}
             onStrokeEnd={data => {
-              // console.log(data)
+              console.log(data)
               this.save(data)
             }}
           />
