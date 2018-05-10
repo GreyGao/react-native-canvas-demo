@@ -20,8 +20,7 @@ import {
 } from 'react-native';
 import Orientation from 'react-native-orientation'
 import { SketchCanvas } from './src/@terrylinla/react-native-sketch-canvas';
-
-import Canvas, {Image as CanvasImage, Path2D} from 'react-native-canvas';
+import Canvas, {Image as CanvasImage} from 'react-native-canvas';
 
 
 type Props = {};
@@ -90,9 +89,9 @@ export default class App extends Component<Props> {
   };
 
   // 清空画布
-  clear = (canvas) => {
+  clear = (canvas1,canvas2) => {
     // 内容清空
-    canvas.clear();
+    canvas1.clear();
     // 路径数据清空
     const {pathsData, page} = this.state;
     pathsData[page] = [];
@@ -102,7 +101,7 @@ export default class App extends Component<Props> {
     this.setState({
       images: images
     });
-    this.clearImage(this.canvas2);
+    this.clearImage(canvas2);
   };
 
   // 橡皮擦
@@ -112,11 +111,48 @@ export default class App extends Component<Props> {
     })
   };
 
+  // 翻页
+  pageTurn = (canvas1,canvas2, direction) => {
+    // 1. 获取翻页后的页码page, direction = 1 向后翻页， direction = 0 向前翻页
+    if (this.state.page === 0 && direction === 0) return;
+
+    let page = '';
+
+    if (direction === 1) {
+      page = this.state.page + 1;
+    } else {
+      page = this.state.page - 1;
+    }
+    // 2. 读取该page的data
+    const pathData = this.state.pathsData[page] || [];
+    const imagesData = this.state.images[page] || [];
+
+    // 3. 判断当前页是否已有数据,有=>复原画布，无=>清空当前画布
+    if (pathData.length > 0) {
+      canvas1.clear();
+      for (let i = 0; i < pathData.length; i++) {
+        canvas1.addPath(pathData[i])
+      }
+    } else {
+      canvas1.clear();
+    }
+    if (imagesData.length > 0) {
+      this.clearImage(canvas2);
+      this.refreshImage(canvas2);
+    } else {
+      this.clearImage(canvas2);
+    }
+    // 4. 更新state.page状态
+    this.setState({
+      page: page
+    })
+  };
+
   // 保存数据
   save = (res) => {
     const {data, page, openTime, pathsData} = this.state;
 
-    //保存原始path数据, 用于复原路径
+    //保存原始path数据, 以用于复原路径
     if (!pathsData[page]) {
       pathsData[page] = []
     }
@@ -190,6 +226,7 @@ export default class App extends Component<Props> {
       data: mutiPagesData,
       action: mutiAction,
     };
+    console.log(saveData)
 
     this.setState({
       data: saveData,
@@ -199,8 +236,8 @@ export default class App extends Component<Props> {
 
   // 增加图片 canvas2
   addImage = (canvas) => {
-    canvas.width = this.state.boardWidth;
-    canvas.height = this.state.boardHeight - 40;
+    canvas.width = this.state.boardWidth - 10;
+    canvas.height = this.state.boardHeight - 10;
 
     const context = canvas.getContext('2d');
     const image = new CanvasImage(canvas);
@@ -216,12 +253,12 @@ export default class App extends Component<Props> {
       images[page] = []
     }
     images[page].push(1);
-    console.log('增加图片',this.state.images)
     this.setState({
       images: images,
     })
 
   };
+
   // 复原图片 canvas2
   refreshImage = (canvas) => {
     const images = this.state.images;
@@ -241,60 +278,21 @@ export default class App extends Component<Props> {
 
   // 清空图片 canvas2
   clearImage = (canvas) => {
-    canvas.width = this.state.boardWidth;
-    canvas.height = this.state.boardHeight - 40;
+    canvas.width = this.state.boardWidth - 10;
+    canvas.height = this.state.boardHeight - 10;
     const context = canvas.getContext('2d');
   };
-
-  // 翻页
-  pageTurn = (canvas, direction) => {
-    // 1. 获取翻页后的页码page, direction = 1 向后翻页， direction = 0 向前翻页
-    if (this.state.page === 0 && direction === 0) return;
-
-    let page = '';
-
-    if (direction === 1) {
-      page = this.state.page + 1;
-    } else {
-      page = this.state.page - 1;
-    }
-    // 2. 读取该page的data
-    const pathData = this.state.pathsData[page] || [];
-    const imagesData = this.state.images[page] || [];
-    console.log(`第${page}页的imageData`, imagesData)
-
-    // 3. 判断当前页是否已有数据,有=>复原画布，无=>清空当前画布
-    if (pathData.length > 0) {
-      canvas.clear();
-      for (let i = 0; i < pathData.length; i++) {
-        canvas.addPath(pathData[i])
-      }
-    } else {
-      canvas.clear();
-    }
-    if (imagesData.length > 0) {
-      this.clearImage(this.canvas2);
-      this.refreshImage(this.canvas2);
-    } else {
-      this.clearImage(this.canvas2);
-    }
-    // 4. this.state.page -= 1
-    this.setState({
-      page: page
-    })
-  };
-
 
   render() {
     return (
       <View style={styles.container}>
         <View style={styles.touchbar}>
-          <Button title="前" onPress={() => {this.pageTurn(this.canvas1,0)}}  style={styles.welcome} />
-          <Button title="后" onPress={() => {this.pageTurn(this.canvas1,1)}}  style={styles.welcome} />
-          <Button title="粗" onPress={() => {this.changeWidth(4)}}  style={styles.welcome} />
-          <Button title="细" onPress={() => {this.changeWidth(1)}} style={styles.welcome} />
+          <Button title="前" onPress={() => {this.pageTurn(this.canvas1,this.canvas2,0)}}  style={styles.welcome} />
+          <Button title="后" onPress={() => {this.pageTurn(this.canvas1,this.canvas2,1)}}  style={styles.welcome} />
+          <Button title="粗" onPress={() => {this.changeWidth(10)}}  style={styles.welcome} />
+          <Button title="细" onPress={() => {this.changeWidth(2)}} style={styles.welcome} />
           <Button title="擦" onPress={() => {this.eraser()}}  style={styles.welcome} />
-          <Button title="空" onPress={() => {this.clear(this.canvas1)}} style={styles.welcome}/>
+          <Button title="空" onPress={() => {this.clear(this.canvas1,this.canvas2)}} style={styles.welcome}/>
           <Text style={styles.welcome}>Canvas 白板功能测试</Text>
           <Button title="红" onPress={() => {this.changeColor('red')}} style={styles.welcome} />
           <Button title="蓝" onPress={() => {this.changeColor('blue')}} style={styles.welcome} />
@@ -346,7 +344,7 @@ const styles = StyleSheet.create({
   },
   backboard: {
     position: 'absolute',
-    bottom: 10,
+    // bottom: 10,
     // borderWidth: 0.5,
     // borderColor: 'red',
     backgroundColor: 'hsla(0,0%,0%,0)',
