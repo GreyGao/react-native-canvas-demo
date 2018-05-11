@@ -1,11 +1,6 @@
 /**
  * React Native App For Canvas Demo
  * @GreyGao 2018.05.08
- *
- * Link native code:
- * react-native link react-native-orientation
- * react-native link @terrylinla/react-native-sketch-canvas
- *
  */
 
 import React, { Component } from 'react';
@@ -20,13 +15,14 @@ import {
 } from 'react-native';
 import Orientation from 'react-native-orientation'
 import { SketchCanvas } from './src/@terrylinla/react-native-sketch-canvas';
-import Canvas, {Image as CanvasImage} from 'react-native-canvas';
+import Canvas, { Image as CanvasImage } from 'react-native-canvas';
 
 
 type Props = {};
 export default class App extends Component<Props> {
   pageData = [];
   pageAction = [];
+  imageData = [];
 
   constructor(props) {
     super(props);
@@ -52,13 +48,16 @@ export default class App extends Component<Props> {
   }
 
   componentWillMount() {
+    // 强制横屏
+    Orientation.lockToLandscape()
+
     // 获取屏幕尺寸，设置画板高度, 10px不可操作区域
-    const {height, width} = Dimensions.get('window');
+    const { height, width } = Dimensions.get('window');
     const boardHeight = Math.floor(height) - 10;
     const boardWidth = Math.floor(width) - 10;
 
     // 获取打开app时的时间戳
-    const time =  Date.now();
+    const time = Date.now();
 
     this.setState({
       boardHeight: boardHeight,
@@ -68,8 +67,6 @@ export default class App extends Component<Props> {
   }
 
   componentDidMount() {
-    // 强制横屏
-    Orientation.lockToLandscape()
   }
 
   // 画笔颜色
@@ -89,11 +86,11 @@ export default class App extends Component<Props> {
   };
 
   // 清空画布
-  clear = (canvas1,canvas2) => {
+  clear = (canvas1, canvas2) => {
     // 内容清空
     canvas1.clear();
     // 路径数据清空
-    const {pathsData, page} = this.state;
+    const { pathsData, page } = this.state;
     pathsData[page] = [];
     // 清空canvas2
     const images = this.state.images;
@@ -112,7 +109,7 @@ export default class App extends Component<Props> {
   };
 
   // 翻页
-  pageTurn = (canvas1,canvas2, direction) => {
+  pageTurn = (canvas1, canvas2, direction) => {
     // 1. 获取翻页后的页码page, direction = 1 向后翻页， direction = 0 向前翻页
     if (this.state.page === 0 && direction === 0) return;
 
@@ -138,7 +135,7 @@ export default class App extends Component<Props> {
     }
     if (imagesData.length > 0) {
       this.clearImage(canvas2);
-      this.refreshImage(canvas2);
+      this.refreshImage(canvas2, page);
     } else {
       this.clearImage(canvas2);
     }
@@ -150,7 +147,7 @@ export default class App extends Component<Props> {
 
   // 保存数据
   save = (res) => {
-    const {data, page, openTime, pathsData} = this.state;
+    const { data, page, openTime, pathsData } = this.state;
 
     //保存原始path数据, 以用于复原路径
     if (!pathsData[page]) {
@@ -226,7 +223,7 @@ export default class App extends Component<Props> {
       data: mutiPagesData,
       action: mutiAction,
     };
-    console.log(saveData)
+    // console.log(saveData)
 
     this.setState({
       data: saveData,
@@ -237,22 +234,33 @@ export default class App extends Component<Props> {
   // 增加图片 canvas2
   addImage = (canvas) => {
     canvas.width = this.state.boardWidth - 10;
-    canvas.height = this.state.boardHeight - 10;
+    canvas.height = this.state.boardHeight - 50;
 
     const context = canvas.getContext('2d');
     const image = new CanvasImage(canvas);
 
     image.src = 'https://image.freepik.com/free-vector/unicorn-background-design_1324-79.jpg';
-    image.addEventListener('load', () => {
-      context.drawImage(image, 0, 0, 100, 100);
-    });
 
     const images = this.state.images;
     const page = this.state.page;
+
+    const x = parseInt(Math.random() * (canvas.width - 100))
+    const y = parseInt(Math.random() * (canvas.height - 100))
+
+    image.addEventListener('load', () => {
+      context.drawImage(image, x, y, 100, 100);
+    });
+
+    this.imageData[page] = {
+      x: x,
+      y: y
+    }
+
     if (!images[page]) {
       images[page] = []
     }
     images[page].push(1);
+
     this.setState({
       images: images,
     })
@@ -260,9 +268,8 @@ export default class App extends Component<Props> {
   };
 
   // 复原图片 canvas2
-  refreshImage = (canvas) => {
+  refreshImage = (canvas, page) => {
     const images = this.state.images;
-    const page = this.state.page;
 
     // for(let i=0; i< images[page].length; i++){
     //
@@ -272,14 +279,16 @@ export default class App extends Component<Props> {
 
     image.src = 'https://image.freepik.com/free-vector/unicorn-background-design_1324-79.jpg';
     image.addEventListener('load', () => {
-      context.drawImage(image, 0, 0, 100, 100);
+      const x = this.imageData[page].x
+      const y = this.imageData[page].y
+      context.drawImage(image, x, y, 100, 100);
     });
   };
 
   // 清空图片 canvas2
   clearImage = (canvas) => {
     canvas.width = this.state.boardWidth - 10;
-    canvas.height = this.state.boardHeight - 10;
+    canvas.height = this.state.boardHeight - 50;
     const context = canvas.getContext('2d');
   };
 
@@ -287,25 +296,27 @@ export default class App extends Component<Props> {
     return (
       <View style={styles.container}>
         <View style={styles.touchbar}>
-          <Button title="前" onPress={() => {this.pageTurn(this.canvas1,this.canvas2,0)}}  style={styles.welcome} />
-          <Button title="后" onPress={() => {this.pageTurn(this.canvas1,this.canvas2,1)}}  style={styles.welcome} />
-          <Button title="粗" onPress={() => {this.changeWidth(10)}}  style={styles.welcome} />
-          <Button title="细" onPress={() => {this.changeWidth(2)}} style={styles.welcome} />
-          <Button title="擦" onPress={() => {this.eraser()}}  style={styles.welcome} />
-          <Button title="空" onPress={() => {this.clear(this.canvas1,this.canvas2)}} style={styles.welcome}/>
+          {/* 按钮区 */}
+          <Button title="前" onPress={() => { this.pageTurn(this.canvas1, this.canvas2, 0) }} style={styles.welcome} />
+          <Button title="后" onPress={() => { this.pageTurn(this.canvas1, this.canvas2, 1) }} style={styles.welcome} />
+          <Button title="粗" onPress={() => { this.changeWidth(10) }} style={styles.welcome} />
+          <Button title="细" onPress={() => { this.changeWidth(2) }} style={styles.welcome} />
+          <Button title="擦" onPress={() => { this.eraser() }} style={styles.welcome} />
+          <Button title="空" onPress={() => { this.clear(this.canvas1, this.canvas2) }} style={styles.welcome} />
           <Text style={styles.welcome}>Canvas 白板功能测试</Text>
-          <Button title="红" onPress={() => {this.changeColor('red')}} style={styles.welcome} />
-          <Button title="蓝" onPress={() => {this.changeColor('blue')}} style={styles.welcome} />
-          <Button title="黑" onPress={() => {this.changeColor('black')}} style={styles.welcome} />
+          <Button title="红" onPress={() => { this.changeColor('red') }} style={styles.welcome} />
+          <Button title="蓝" onPress={() => { this.changeColor('blue') }} style={styles.welcome} />
+          <Button title="黑" onPress={() => { this.changeColor('black') }} style={styles.welcome} />
           <Button
             ref={ref => this.addImg = ref}
-            title="添加图片" onPress={() => {this.addImage(this.canvas2)}} style={styles.welcome} />
+            title="添加图片" onPress={() => { this.addImage(this.canvas2) }} style={styles.welcome} />
+          <Text>{`第${this.state.page + 1}页`}</Text>
         </View>
-
+        {/* 画板区 */}
         <View style={styles.board}>
           <SketchCanvas
             ref={ref => this.canvas1 = ref}
-            style={{width: this.state.boardWidth, height: this.state.boardHeight}}
+            style={{ width: this.state.boardWidth, height: this.state.boardHeight }}
             strokeColor={this.state.penColor}
             strokeWidth={this.state.penWidth}
             onStrokeEnd={data => {
@@ -340,7 +351,6 @@ const styles = StyleSheet.create({
   board: {
     backgroundColor: 'hsla(0,0%,0%,0)',
     flex: 1,
-
   },
   backboard: {
     position: 'absolute',
